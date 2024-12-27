@@ -21,15 +21,18 @@ public class PlayerLoco : MonoBehaviour
 
      void FixedUpdate()
      {
-        Vector3 moveDirection = new Vector3(moveInput.x, 0, moveInput.y);
+        Vector3 moveDirection = transform.TransformDirection(new Vector3(moveInput.x, 0, moveInput.y));
         rb.velocity = moveDirection * speed  + new Vector3 (0, rb.velocity.y, 0);
-       
+
+        AudioPlayer.isWalking = moveDirection.sqrMagnitude > 0;
+
         if (lookInput.sqrMagnitude > 0.01f ) //prevents jittering when stick is neutral 
         {
             Vector3 lookDirection = new Vector3(lookInput.x, 0, lookInput.y).normalized;
             Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
             rb.rotation = Quaternion.RotateTowards(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
         }
+        
         //look at flashfright to see how we configured rotation so its not inverted 
      }
 
