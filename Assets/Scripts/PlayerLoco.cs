@@ -4,6 +4,15 @@ using UnityEngine.InputSystem;
 
 public class PlayerLoco : MonoBehaviour
 {
+    public enum AnimalState
+    {
+        Human,
+        Half,
+        Lycan
+    }
+
+    public AnimalState beginState = AnimalState.Human;
+
     public float speed = 6f;
     public float rotateSpeed = 720f;
 
