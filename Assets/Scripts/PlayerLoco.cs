@@ -1,17 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
+public enum AnimalState
+{
+    Human,
+    Half,
+    Lycan
+}
 public class PlayerLoco : MonoBehaviour
 {
-    public enum AnimalState
-    {
-        Human,
-        Half,
-        Lycan
-    }
-
-    public AnimalState beginState = AnimalState.Human;
+    public AnimalState transformState = AnimalState.Human;
 
     public float speed = 6f;
     public float rotateSpeed = 720f;
@@ -19,31 +17,93 @@ public class PlayerLoco : MonoBehaviour
     Vector2 moveInput;
     Vector2 lookInput;
 
+    public GameObject deadAnimal2;
+
     public Rigidbody rb;
+
+    private bool xPressed = false;
+    private bool oPressed = false;
+    private bool canMove = true;
+
+    private string lastbutton = "O";
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        deadAnimal2.SetActive(false);
 
     }
 
-     void FixedUpdate()
-     {
-        Vector3 moveDirection = transform.TransformDirection(new Vector3(moveInput.x, 0, moveInput.y));
-        rb.velocity = moveDirection * speed  + new Vector3 (0, rb.velocity.y, 0);
+    void Update()
+    {
+        switch (transformState)
+        {
+            case AnimalState.Half:
+                
+                if (xPressed && moveInput.sqrMagnitude > 0)
+                {
+                    canMove = true;
+                    ResetButtons();
+                }
+                else
+                {
+                    canMove = false;
+                }
 
-        AudioPlayer.isWalking = moveDirection.sqrMagnitude > 0;
+            break;
 
-        if (lookInput.sqrMagnitude > 0.01f ) //prevents jittering when stick is neutral 
+            case AnimalState.Lycan:
+
+               if (moveInput.sqrMagnitude > 0)
+               {
+                    if ((lastbutton == "X" && oPressed) || (lastbutton == "O" && xPressed) && moveInput.sqrMagnitude > 0)
+                    {
+                        canMove = true;
+                        lastbutton = xPressed ? "X" : "O";
+                        ResetButtons();
+                    }
+                    else
+                    {
+                        canMove = false;
+                    }
+               }
+               else
+               {
+                    canMove = false;
+               }
+
+            break;
+
+                default:
+                    
+                    canMove = true;
+
+                break;
+        }
+    }
+    
+        
+    
+
+    void FixedUpdate()
+    {
+        if (lookInput.sqrMagnitude > 0.01f) //prevents jittering when stick is neutral 
         {
             Vector3 lookDirection = new Vector3(lookInput.x, 0, lookInput.y).normalized;
             Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
             rb.rotation = Quaternion.RotateTowards(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
         }
-        
-        //look at flashfright to see how we configured rotation so its not inverted 
-     }
+
+        if (!canMove) return; // Skip movement if conditions are not met
+
+        Vector3 moveDirection = transform.TransformDirection(new Vector3(moveInput.x, 0, moveInput.y));
+        rb.velocity = moveDirection * speed  + new Vector3 (0, rb.velocity.y, 0);
+
+        AudioPlayer.isWalking = moveDirection.sqrMagnitude > 0;
+
+       
+    }
 
     public void Move(InputAction.CallbackContext context)
     {
@@ -54,4 +114,30 @@ public class PlayerLoco : MonoBehaviour
     {
         lookInput = context.ReadValue<Vector2>();
     }
+
+
+    public void OnXPress(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            xPressed = true;
+
+        }
+    }
+
+    public void OnOPress(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            oPressed = true;
+        }
+    }
+
+    private void ResetButtons()
+    {
+        xPressed = false;
+        oPressed = false;
+    }
+
+    
 }

@@ -6,9 +6,7 @@ public class AudioPlayer : MonoBehaviour
 
     public AudioSource audioSource;
     public AudioClip footstepsStart;
-
-
-
+    
 
     void Start()
     {
