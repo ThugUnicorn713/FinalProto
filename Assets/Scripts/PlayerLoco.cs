@@ -11,7 +11,15 @@ public class PlayerLoco : MonoBehaviour
 {
     public AnimalState transformState = AnimalState.Human;
 
+    public AudioSource lycanRunSource;
+    public AudioClip lycanRun;
+
     public float speed = 6f;
+    public float halfSpeed = 3f;
+    public float lycanSpeed = 10f;
+    public float crouchHeight = 0.5f;
+    public float currentHeight;
+
     public float rotateSpeed = 720f;
 
     Vector2 moveInput;
@@ -27,16 +35,21 @@ public class PlayerLoco : MonoBehaviour
 
     private string lastbutton = "O";
 
+    private float ogHeight;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotation;
         deadAnimal2.SetActive(false);
 
+        ogHeight = transform.localScale.y;
+
     }
 
     void Update()
     {
+
         switch (transformState)
         {
             case AnimalState.Half:
@@ -44,6 +57,7 @@ public class PlayerLoco : MonoBehaviour
                 if (xPressed && moveInput.sqrMagnitude > 0)
                 {
                     canMove = true;
+                    SetHalfSpeed();
                     ResetButtons();
                 }
                 else
@@ -60,12 +74,15 @@ public class PlayerLoco : MonoBehaviour
                     if ((lastbutton == "X" && oPressed) || (lastbutton == "O" && xPressed) && moveInput.sqrMagnitude > 0)
                     {
                         canMove = true;
+                        SetLycanMovement(crouchHeight);
                         lastbutton = xPressed ? "X" : "O";
                         ResetButtons();
                     }
                     else
                     {
                         canMove = false;
+                       
+                        //SetToOGHeight(ogHeight);
                     }
                }
                else
@@ -81,6 +98,8 @@ public class PlayerLoco : MonoBehaviour
 
                 break;
         }
+
+       
     }
     
         
@@ -95,14 +114,16 @@ public class PlayerLoco : MonoBehaviour
             rb.rotation = Quaternion.RotateTowards(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
         }
 
-        if (!canMove) return; // Skip movement if conditions are not met
+        if (!canMove)  // Skip movement if conditions are not met
+        {
+            AudioPlayer.isWalking = false;
+            return;
+        } 
 
         Vector3 moveDirection = transform.TransformDirection(new Vector3(moveInput.x, 0, moveInput.y));
         rb.velocity = moveDirection * speed  + new Vector3 (0, rb.velocity.y, 0);
 
         AudioPlayer.isWalking = moveDirection.sqrMagnitude > 0;
-
-       
     }
 
     public void Move(InputAction.CallbackContext context)
@@ -131,6 +152,32 @@ public class PlayerLoco : MonoBehaviour
         {
             oPressed = true;
         }
+    }
+
+    public void SetHalfSpeed()
+    {
+        speed = halfSpeed;
+    }
+
+    public void SetLycanMovement(float newHeight)
+    {
+        if (!lycanRunSource.isPlaying)  // Check if the sound is not already playing
+        {
+            lycanRunSource.PlayOneShot(lycanRun);
+        }
+
+        speed = lycanSpeed;
+        Vector3 scale = transform.localScale;
+        scale.y = newHeight;
+        transform.localScale = scale;
+    }
+
+    public void SetToOGHeight(float newHeight)
+    {
+        lycanRunSource.Stop();
+        Vector3 scale = transform.localScale;
+        scale.y = newHeight;
+        transform.localScale = scale;
     }
 
     private void ResetButtons()
