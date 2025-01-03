@@ -7,6 +7,7 @@ public class AudioPlayer : MonoBehaviour
     public AudioSource audioSource;
     public AudioSource audioSource2;
     public AudioSource audioSource3;
+    public AudioSource audioSource4;
 
     public AudioClip footstepsStart;
     public AudioClip halfFootstep;
@@ -119,6 +120,14 @@ public class AudioPlayer : MonoBehaviour
         if (audioSource3.isPlaying)
         {
             audioSource.Stop();
+        }
+    }
+
+    public void PlayBigGrowlAudio()
+    {
+        if (!audioSource4.isPlaying)
+        {
+            audioSource4.Play();
         }
     }
 

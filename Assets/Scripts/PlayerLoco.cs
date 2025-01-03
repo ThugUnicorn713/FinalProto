@@ -23,7 +23,7 @@ public class PlayerLoco : MonoBehaviour
     public float rotateSpeed = 720f;
 
     Vector2 moveInput;
-    Vector2 lookInput;
+    Vector3 lookInput;
 
     public GameObject deadAnimal2;
 
@@ -101,17 +101,18 @@ public class PlayerLoco : MonoBehaviour
 
        
     }
-    
-        
-    
 
     void FixedUpdate()
     {
         if (lookInput.sqrMagnitude > 0.01f) //prevents jittering when stick is neutral 
         {
             Vector3 lookDirection = new Vector3(lookInput.x, 0, lookInput.y).normalized;
-            Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-            rb.rotation = Quaternion.RotateTowards(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
+            
+            if (lookDirection.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+                rb.rotation = Quaternion.RotateTowards(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
+            }
         }
 
         if (!canMove)  // Skip movement if conditions are not met
@@ -133,7 +134,7 @@ public class PlayerLoco : MonoBehaviour
 
     public void Look(InputAction.CallbackContext context)
     {
-        lookInput = context.ReadValue<Vector2>();
+        lookInput = ApplyDeadZone(context.ReadValue<Vector2>(), 0.1f); // Adjust dead zone as needed
     }
 
 
@@ -186,5 +187,9 @@ public class PlayerLoco : MonoBehaviour
         oPressed = false;
     }
 
-    
+    private Vector2 ApplyDeadZone(Vector2 input, float deadZone)
+    {
+        return input.sqrMagnitude < deadZone * deadZone ? Vector2.zero : input;
+    }
+
 }
